@@ -794,6 +794,14 @@ button.consumo-fila:hover {
   color: var(--color-texto-inverso);
 }
 
+/* Aviso "Buscando…" de Movimientos (role="status"). Vacío ocupa 0 px, pero
+   igual sumaba otro "gap" de .main y dejaba un hueco doble arriba de la
+   lista. Con position: absolute sale del flujo sin desaparecer, así el
+   lector de pantalla lo sigue anunciando cuando aparece el texto. */
+.main > .subtitulo[role="status"]:empty {
+  position: absolute;
+}
+
 .grupo-fecha {
   display: flex;
   flex-direction: column;
