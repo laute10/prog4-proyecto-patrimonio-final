@@ -72,7 +72,12 @@ function GraficoPatrimonio({ historial }) {
     `Al final: disponible ${formatearMonto(fin.disponible)}, ahorros ${formatearMonto(fin.ahorros)} ` +
     `y reserva de tarjeta ${formatearMonto(fin.reserva)}.`;
 
-  const medio = puntos[Math.floor((puntos.length - 1) / 2)];
+  // Etiqueta del medio del eje X. El primer punto (saldo al EMPEZAR el
+  // período) y el cierre de ese mismo día llevan la misma fecha: por eso se
+  // elige entre los puntos intermedios que no repiten la del inicio. Si no
+  // queda ninguno, el lugar del medio queda vacío.
+  const intermedios = puntos.slice(1, -1).filter((p) => p.etiqueta !== inicio.etiqueta);
+  const medio = intermedios[Math.floor((intermedios.length - 1) / 2)];
 
   return (
     <div className="grafico-patrimonio">
@@ -135,7 +140,7 @@ function GraficoPatrimonio({ historial }) {
         </svg>
         <div className="grafico-patrimonio__eje-x" aria-hidden="true">
           <span>{inicio.etiqueta}</span>
-          <span>{medio.etiqueta}</span>
+          <span>{medio ? medio.etiqueta : ""}</span>
           <span>{fin.etiqueta}</span>
         </div>
       </div>
