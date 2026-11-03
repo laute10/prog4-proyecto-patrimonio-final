@@ -1,0 +1,598 @@
+import { useState } from "react";
+import Overlay from "../components/Overlay";
+import PanelLateral from "../components/PanelLateral";
+import Modal from "../components/Modal";
+import SelectorCategoria from "../components/SelectorCategoria";
+import CampoFormulario from "../components/CampoFormulario";
+import { deudaPeriodo, etiquetaPeriodo, etiquetaCorta } from "../hooks/usePatrimonio";
+
+// ==========================================================================
+// Tarjetas - lista de tarjetas (solo período ABIERTO) e historial de
+// períodos (sin ABIERTA). Sigue el diseño de Figma:
+//   - "Resumen de tarjeta" es un PANEL lateral (frames RESUMEN - CERRAR /
+//     PAGAR / PAGADO)
+//   - "Agregar consumo" y "Editar consumo" son otros paneles, con flecha
+//     "←" para volver al resumen
+//   - cerrar período, pagar período y eliminar consumo son MODALES (el
+//     componente Modal: role="dialog" y aria-modal)
+//
+// Estado propio de la página (solo de pantalla, no financiero):
+//   - resumenActual: qué período se está mirando { tarjetaId, periodoId }
+//   - panelAbierto: null | "resumen" | "consumo" | "tarjeta"
+//   - modal: null | "cerrar" | "pagar" | "eliminar"
+//   - guardando / errorPanel: espera de la API y su mensaje de error
+// Los datos financieros vienen siempre por props desde usePatrimonio; las
+// acciones son async y, si la API responde un error, lanzan su mensaje.
+// ==========================================================================
+
+
+function formatearMonto(numero) {
+  return "$ " + numero.toLocaleString("es-AR");
+}
+
+function claseBadge(estado) {
+  return "badge badge--" + estado.toLowerCase();
+}
+
+// Más nuevo primero: mayor año y mayor mes arriba
+function valorOrden(periodo) {
+  return periodo.anio * 12 + periodo.mes;
+}
+
+function Tarjetas({
+  categoriasGasto,
+  agregarCategoria,
+  tarjetas,
+  disponible,
+  crearTarjeta,
+  agregarConsumoTarjeta,
+  editarConsumoTarjeta,
+  eliminarConsumoTarjeta,
+  cerrarPeriodo,
+  pagarPeriodo,
+}) {
+  const [resumenActual, setResumenActual] = useState(null); // { tarjetaId, periodoId }
+  const [panelAbierto, setPanelAbierto] = useState(null);
+  const [modal, setModal] = useState(null);
+
+  const [filtroTarjeta, setFiltroTarjeta] = useState("todas");
+  const [filtroEstado, setFiltroEstado] = useState("todos");
+
+  // Formulario "Agregar tarjeta"
+  const [nombreTarjeta, setNombreTarjeta] = useState("");
+  const [errorTarjeta, setErrorTarjeta] = useState("");
+
+  // Formulario de consumo (sirve para agregar y para editar)
+  const [consumoEditando, setConsumoEditando] = useState(null); // null = agregando
+  const [categoriaConsumo, setCategoriaConsumo] = useState(categoriasGasto[0]);
+  const [montoConsumo, setMontoConsumo] = useState("");
+  const [descripcionConsumo, setDescripcionConsumo] = useState("");
+  const [errorConsumo, setErrorConsumo] = useState("");
+
+  // Mientras se espera la respuesta de la API el botón queda deshabilitado
+  // con "Guardando…"; si la API responde un error, se muestra en el panel.
+  const [guardando, setGuardando] = useState(false);
+  const [errorPanel, setErrorPanel] = useState("");
+
+  // -- Datos derivados del resumen elegido ---------------------------------
+  // Se buscan en los datos actuales para que el panel siempre esté al día.
+
+  const tarjetaResumen = resumenActual && tarjetas.find((t) => t.id === resumenActual.tarjetaId);
+  const periodoResumen =
+    tarjetaResumen && tarjetaResumen.periodos.find((p) => p.id === resumenActual.periodoId);
+
+  // -- Abrir / cerrar ------------------------------------------------------
+
+  function periodoAbierto(tarjeta) {
+    return tarjeta.periodos.find((p) => p.estado === "ABIERTA");
+  }
+
+  function abrirResumen(tarjetaId, periodoId) {
+    setResumenActual({ tarjetaId, periodoId });
+    setErrorPanel("");
+    setPanelAbierto("resumen");
+  }
+
+  // La X y el overlay cierran el panel, pero NO borran resumenActual:
+  // así el contenido no desaparece mientras el panel se desliza hacia afuera.
+  function cerrarPanel() {
+    setPanelAbierto(null);
+    setModal(null);
+    setErrorPanel("");
+  }
+
+  // La flecha "←" y "Cancelar" de los paneles de consumo vuelven al resumen.
+  function volverAlResumen() {
+    setPanelAbierto("resumen");
+    setModal(null);
+    setErrorPanel("");
+  }
+
+  function cerrarModal() {
+    setModal(null);
+  }
+
+  // Llama a la API con "accion" y, si sale bien, ejecuta "despues". Si la
+  // API responde un error, se cierra el modal (si había) y el mensaje queda
+  // en el panel abierto.
+  async function guardarConApi(accion, despues) {
+    if (guardando) return;
+    setGuardando(true);
+    setErrorPanel("");
+    try {
+      await accion();
+      despues();
+    } catch (error) {
+      setModal(null);
+      setErrorPanel(error.message);
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  // -- Agregar tarjeta -----------------------------------------------------
+
+  function manejarAgregarTarjeta(evento) {
+    evento.preventDefault();
+    if (nombreTarjeta.trim() === "") {
+      setErrorTarjeta("Ingresá el nombre de la tarjeta.");
+      return;
+    }
+    guardarConApi(
+      () => crearTarjeta({ nombre: nombreTarjeta.trim() }),
+      () => {
+        setNombreTarjeta("");
+        cerrarPanel();
+      }
+    );
+  }
+
+  // -- Consumos ------------------------------------------------------------
+
+  function abrirPanelAgregarConsumo() {
+    setConsumoEditando(null);
+    setCategoriaConsumo(categoriasGasto[0]);
+    setMontoConsumo("");
+    setDescripcionConsumo("");
+    setErrorConsumo("");
+    setErrorPanel("");
+    setPanelAbierto("consumo");
+  }
+
+  function abrirPanelEditarConsumo(consumo) {
+    setConsumoEditando(consumo.id);
+    setCategoriaConsumo(consumo.categoria);
+    setMontoConsumo(String(consumo.monto));
+    setDescripcionConsumo(consumo.descripcion);
+    setErrorConsumo("");
+    setErrorPanel("");
+    setPanelAbierto("consumo");
+  }
+
+  function manejarGuardarConsumo(evento) {
+    evento.preventDefault();
+    if (montoConsumo === "" || Number(montoConsumo) <= 0) {
+      setErrorConsumo("Ingresá un monto mayor a cero.");
+      return;
+    }
+    // Control previo (el servidor también lo rechaza): un consumo no puede
+    // superar el disponible. Al editar, el monto anterior vuelve a contar.
+    const anterior = consumoEditando === null ? null : periodoResumen.consumos.find((c) => c.id === consumoEditando);
+    const maximo = disponible + (anterior ? anterior.monto : 0);
+    if (Number(montoConsumo) > maximo) {
+      setErrorConsumo("No tenés dinero disponible suficiente para este consumo.");
+      return;
+    }
+
+    const datos = {
+      tarjetaId: resumenActual.tarjetaId,
+      categoria: categoriaConsumo,
+      monto: Number(montoConsumo),
+      descripcion: descripcionConsumo.trim(),
+    };
+
+    guardarConApi(
+      () => (consumoEditando === null ? agregarConsumoTarjeta(datos) : editarConsumoTarjeta({ ...datos, consumoId: consumoEditando })),
+      volverAlResumen
+    );
+  }
+
+  function confirmarEliminarConsumo() {
+    guardarConApi(
+      () => eliminarConsumoTarjeta({ tarjetaId: resumenActual.tarjetaId, consumoId: consumoEditando }),
+      volverAlResumen
+    );
+  }
+
+  // -- Cerrar y pagar período ---------------------------------------------
+
+  function confirmarCerrarPeriodo() {
+    // El período pasó a CERRADA y se abrió uno nuevo: cerramos el panel.
+    guardarConApi(() => cerrarPeriodo(resumenActual.tarjetaId), cerrarPanel);
+  }
+
+  function confirmarPagarPeriodo() {
+    // El dinero ya está reservado desde cada consumo, así que el pago no
+    // depende del disponible (el botón solo aparece en períodos cerrados).
+    // Después volvemos al resumen, que ahora se ve como PAGADA.
+    guardarConApi(() => pagarPeriodo(resumenActual.tarjetaId, resumenActual.periodoId), cerrarModal);
+  }
+
+  // -- Historial: períodos que NO están abiertos, más nuevos primero ------
+
+  const historial = tarjetas
+    .flatMap((tarjeta) =>
+      tarjeta.periodos
+        .filter((p) => p.estado !== "ABIERTA")
+        .map((p) => ({ tarjeta, periodo: p }))
+    )
+    .filter((item) => filtroTarjeta === "todas" || String(item.tarjeta.id) === filtroTarjeta)
+    .filter((item) => filtroEstado === "todos" || item.periodo.estado === filtroEstado)
+    .sort((a, b) => valorOrden(b.periodo) - valorOrden(a.periodo));
+
+  const deudaResumen = periodoResumen ? deudaPeriodo(periodoResumen) : 0;
+  // Solo el nombre del mes ("Septiembre"), como dicen los modales del diseño.
+  const mesResumen = periodoResumen ? etiquetaPeriodo(periodoResumen).split(" ")[0] : "";
+  const consumoAEliminar =
+    periodoResumen && periodoResumen.consumos.find((c) => c.id === consumoEditando);
+  const esAbierta = periodoResumen && periodoResumen.estado === "ABIERTA";
+  const esCerrada = periodoResumen && periodoResumen.estado === "CERRADA";
+
+  return (
+    <main className="main" id="contenido">
+      <section className="pagina-header">
+        <h1>Tarjetas</h1>
+        <p className="subtitulo">Administrá tus tarjetas y sus períodos</p>
+        <button
+          type="button"
+          className="btn btn--primario"
+          style={{ width: "200px", marginTop: "var(--espacio-2)" }}
+          onClick={() => setPanelAbierto("tarjeta")}
+        >
+          + Agregar tarjeta
+        </button>
+      </section>
+
+      <section>
+        <div className="seccion-header">
+          <h2>Mis tarjetas</h2>
+        </div>
+
+        {tarjetas.length === 0 ? (
+          <section className="estado-vacio" style={{ marginTop: "var(--espacio-4)" }}>
+            <div className="estado-vacio__icono">!</div>
+            <p className="estado-vacio__titulo">Todavía no tenés tarjetas</p>
+            <p className="estado-vacio__subtitulo">Agregá una para empezar a registrar consumos</p>
+          </section>
+        ) : (
+          <div className="grilla-tarjetas">
+            {tarjetas.map((tarjeta) => {
+              const abierto = periodoAbierto(tarjeta);
+              const pendientes = tarjeta.periodos.filter((p) => p.estado === "CERRADA").length;
+
+              return (
+                <div className="tarjeta-principal" key={tarjeta.id}>
+                  <div className="tarjeta-principal__encabezado">
+                    <div>
+                      <p className="tarjeta-principal__nombre">{tarjeta.nombre}</p>
+                      <p className="tarjeta-principal__periodo">
+                        Período {abierto ? etiquetaCorta(abierto) : "-"}
+                      </p>
+                    </div>
+                    <span className="badge badge--abierta">Abierta</span>
+                  </div>
+
+                  <div className="tarjeta-principal__deuda">
+                    <span className="etiqueta">Deuda</span>
+                    <span className="monto">{formatearMonto(abierto ? deudaPeriodo(abierto) : 0)}</span>
+                  </div>
+
+                  {pendientes > 0 && (
+                    <p className="tarjeta-principal__aviso">
+                      {pendientes === 1
+                        ? "1 período pendiente de pago"
+                        : `${pendientes} períodos pendientes de pago`}
+                    </p>
+                  )}
+
+                  <div className="tarjeta-principal__pie">
+                    <button
+                      type="button"
+                      className="btn btn--primario btn--chico"
+                      onClick={() => abrirResumen(tarjeta.id, abierto.id)}
+                    >
+                      Ver resumen
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <div className="seccion-header">
+          <h2>Historial de períodos</h2>
+        </div>
+
+        <div className="filtros-historial">
+          <select
+            className="select-filtro"
+            aria-label="Filtrar por tarjeta"
+            value={filtroTarjeta}
+            onChange={(e) => setFiltroTarjeta(e.target.value)}
+          >
+            <option value="todas">Todas las tarjetas</option>
+            {tarjetas.map((t) => (
+              <option key={t.id} value={String(t.id)}>{t.nombre}</option>
+            ))}
+          </select>
+
+          <select
+            className="select-filtro"
+            aria-label="Filtrar por estado"
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+          >
+            <option value="todos">Todos los estados</option>
+            <option value="CERRADA">Cerradas</option>
+            <option value="PAGADA">Pagadas</option>
+          </select>
+        </div>
+
+        {historial.length === 0 ? (
+          <p className="subtitulo" style={{ marginTop: "var(--espacio-3)" }}>
+            No hay períodos para mostrar
+          </p>
+        ) : (
+          <div>
+            {historial.map(({ tarjeta, periodo }) => (
+              <div
+                className="historial-item"
+                key={periodo.id}
+                style={{ cursor: "pointer" }}
+                onClick={() => abrirResumen(tarjeta.id, periodo.id)}
+              >
+                <div className="historial-item__info">
+                  <span className="historial-item__nombre">{tarjeta.nombre}</span>
+                  <span className="historial-item__periodo">{etiquetaPeriodo(periodo)}</span>
+                </div>
+                <div className="historial-item__derecha">
+                  <span className={claseBadge(periodo.estado)}>{periodo.estado}</span>
+                  <span className="historial-item__monto">{formatearMonto(deudaPeriodo(periodo))}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <Overlay visible={panelAbierto !== null || modal !== null} onClick={cerrarPanel} />
+
+      {/* ---------- Panel: Agregar tarjeta ---------- */}
+      <PanelLateral
+        abierto={panelAbierto === "tarjeta"}
+        titulo="Agregar tarjeta"
+        descripcion="Registrá una tarjeta para comenzar a administrar sus períodos y consumos"
+        onCerrar={cerrarPanel}
+        acciones={
+          <>
+            <button type="submit" form="form-agregar-tarjeta" className="btn btn--primario" disabled={guardando}>
+              {guardando ? "Guardando…" : "Agregar tarjeta"}
+            </button>
+            <button type="button" className="btn btn--secundario btn--texto-secundario" onClick={cerrarPanel}>
+              Cancelar
+            </button>
+          </>
+        }
+      >
+        <form id="form-agregar-tarjeta" onSubmit={manejarAgregarTarjeta} noValidate>
+          <CampoFormulario
+            id="tarjeta-nombre"
+            etiqueta="Nombre de la tarjeta"
+            placeholder="Ej. Visa"
+            maxLength={30}
+            valor={nombreTarjeta}
+            onCambio={(nuevo) => {
+              setNombreTarjeta(nuevo);
+              setErrorTarjeta("");
+            }}
+            error={errorTarjeta}
+          />
+        </form>
+        {panelAbierto === "tarjeta" && errorPanel !== "" && <p className="campo__error" role="alert">{errorPanel}</p>}
+      </PanelLateral>
+
+      {/* ---------- Panel: Resumen de tarjeta ---------- */}
+      <PanelLateral
+        abierto={panelAbierto === "resumen"}
+        titulo="Resumen de tarjeta"
+        onCerrar={cerrarPanel}
+        acciones={
+          <>
+            {esAbierta && (
+              <button type="button" className="btn btn--primario" onClick={() => setModal("cerrar")}>
+                Cerrar período
+              </button>
+            )}
+            {esCerrada && (
+              <button type="button" className="btn btn--primario" onClick={() => setModal("pagar")}>
+                Pagar período
+              </button>
+            )}
+          </>
+        }
+      >
+        {tarjetaResumen && periodoResumen && (
+          <>
+            <p className="resumen-panel__nombre">{tarjetaResumen.nombre}</p>
+            <p className="resumen-panel__periodo">
+              Período {etiquetaCorta(periodoResumen)} - {periodoResumen.estado}
+            </p>
+
+            <p className="resumen-panel__deuda-etiqueta">Deuda actual</p>
+            <p className="resumen-panel__deuda">{formatearMonto(deudaResumen)}</p>
+
+            {esAbierta && (
+              <button type="button" className="btn btn--primario" style={{ width: "100%" }} onClick={abrirPanelAgregarConsumo}>
+                Agregar consumo
+              </button>
+            )}
+
+            <p className="resumen-panel__subtitulo">Consumos del período</p>
+
+            {periodoResumen.consumos.length === 0 ? (
+              <p className="consumo-fila__descripcion">Este período todavía no tiene consumos</p>
+            ) : (
+              periodoResumen.consumos.map((consumo) => {
+                const contenido = (
+                  <>
+                    <span>
+                      <span className="consumo-fila__categoria">{consumo.categoria}</span>
+                      <span className="consumo-fila__descripcion">{consumo.descripcion}</span>
+                    </span>
+                    <span className="consumo-fila__monto">{formatearMonto(consumo.monto)}</span>
+                  </>
+                );
+
+                // Solo el período ABIERTO permite editar: ahí cada fila es un botón.
+                return esAbierta ? (
+                  <button
+                    type="button"
+                    className="consumo-fila"
+                    key={consumo.id}
+                    onClick={() => abrirPanelEditarConsumo(consumo)}
+                  >
+                    {contenido}
+                  </button>
+                ) : (
+                  <div className="consumo-fila" key={consumo.id}>
+                    {contenido}
+                  </div>
+                );
+              })
+            )}
+          </>
+        )}
+        {panelAbierto === "resumen" && errorPanel !== "" && <p className="campo__error" role="alert">{errorPanel}</p>}
+      </PanelLateral>
+
+      {/* ---------- Panel: Agregar / Editar consumo ---------- */}
+      <PanelLateral
+        abierto={panelAbierto === "consumo"}
+        titulo={consumoEditando === null ? "Agregar consumo" : "Editar consumo"}
+        descripcion={consumoEditando === null ? "Registrá un consumo realizado con tu tarjeta" : undefined}
+        onVolver={volverAlResumen}
+        onCerrar={cerrarPanel}
+        acciones={
+          <>
+            <button type="submit" form="form-consumo" className="btn btn--primario" disabled={guardando}>
+              {guardando ? "Guardando…" : consumoEditando === null ? "Agregar consumo" : "Guardar cambios"}
+            </button>
+            <button type="button" className="btn btn--secundario btn--texto-secundario" onClick={volverAlResumen}>
+              Cancelar
+            </button>
+            {consumoEditando !== null && (
+              <button type="button" className="btn btn--destructivo" onClick={() => setModal("eliminar")} disabled={guardando}>
+                Eliminar consumo
+              </button>
+            )}
+          </>
+        }
+      >
+        <form id="form-consumo" onSubmit={manejarGuardarConsumo} noValidate>
+          <SelectorCategoria
+            id="consumo-categoria"
+            categorias={categoriasGasto}
+            valor={categoriaConsumo}
+            onCambio={setCategoriaConsumo}
+            onNueva={agregarCategoria}
+          />
+          <CampoFormulario
+            id="consumo-monto"
+            etiqueta="Monto"
+            tipo="number"
+            placeholder="$ 0"
+            min="0"
+            step="1"
+            valor={montoConsumo}
+            onCambio={(nuevo) => {
+              setMontoConsumo(nuevo);
+              setErrorConsumo("");
+            }}
+            error={errorConsumo}
+          />
+          <CampoFormulario
+            id="consumo-descripcion"
+            etiqueta="Descripción (opcional)"
+            placeholder="Ej. Compra de alimentos"
+            maxLength={100}
+            valor={descripcionConsumo}
+            onCambio={setDescripcionConsumo}
+          />
+        </form>
+        {panelAbierto === "consumo" && errorPanel !== "" && <p className="campo__error" role="alert">{errorPanel}</p>}
+      </PanelLateral>
+
+      {/* ---------- Modales de confirmación (textos del diseño en Figma) ---------- */}
+      {modal === "cerrar" && periodoResumen && (
+        <Modal titulo="¿Cerrar período?" onCerrar={cerrarModal}>
+          <p className="modal__texto">
+            Vas a cerrar el período {mesResumen} con una deuda de {formatearMonto(deudaResumen)}. Una vez
+            cerrado, no podrás agregar nuevos consumos a este período.
+          </p>
+          <div className="modal__acciones">
+            <button type="button" className="btn btn--secundario btn--texto-secundario" onClick={cerrarModal} disabled={guardando}>
+              Cancelar
+            </button>
+            <button type="button" className="btn btn--primario" onClick={confirmarCerrarPeriodo} disabled={guardando}>
+              {guardando ? "Guardando…" : "Cerrar período"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {modal === "pagar" && periodoResumen && (
+        <Modal titulo="¿Pagar período?" onCerrar={cerrarModal}>
+          <p className="modal__texto">
+            Vas a pagar {formatearMonto(deudaResumen)} correspondientes al período {mesResumen} de tu
+            tarjeta {tarjetaResumen.nombre}. El pago sale de la reserva de la tarjeta: tu dinero
+            disponible no cambia y tu patrimonio baja en ese monto.
+          </p>
+          <div className="modal__acciones">
+            <button type="button" className="btn btn--secundario btn--texto-secundario" onClick={cerrarModal} disabled={guardando}>
+              Cancelar
+            </button>
+            <button type="button" className="btn btn--primario" onClick={confirmarPagarPeriodo} disabled={guardando}>
+              {guardando ? "Guardando…" : "Pagar período"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {modal === "eliminar" && consumoAEliminar && (
+        <Modal titulo="¿Eliminar consumo?" onCerrar={cerrarModal}>
+          <p className="modal__texto" style={{ marginBottom: "var(--espacio-4)" }}>
+            Vas a eliminar el consumo de {formatearMonto(consumoAEliminar.monto)} de tu tarjeta{" "}
+            {tarjetaResumen.nombre}. Esta acción devolverá ese dinero a tu dinero disponible.
+          </p>
+          <div className="modal__detalle">
+            <span>{consumoAEliminar.categoria}</span>
+            <span>{formatearMonto(consumoAEliminar.monto)}</span>
+          </div>
+          <div className="modal__acciones">
+            <button type="button" className="btn btn--secundario btn--texto-secundario" onClick={cerrarModal} disabled={guardando}>
+              Cancelar
+            </button>
+            <button type="button" className="btn btn--destructivo" onClick={confirmarEliminarConsumo} disabled={guardando}>
+              {guardando ? "Guardando…" : "Eliminar"}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </main>
+  );
+}
+
+export default Tarjetas;
