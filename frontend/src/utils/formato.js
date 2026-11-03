@@ -5,7 +5,10 @@
 
 // 123456 -> "$123.456"
 export function formatearMonto(numero) {
-  return "$" + numero.toLocaleString("es-AR");
+  // Un negativo lleva el signo antes del $: "- $75.500" (no "$-75.500"),
+  // igual que los montos con signo de las listas de movimientos.
+  const texto = "$" + Math.abs(numero).toLocaleString("es-AR");
+  return numero < 0 ? "- " + texto : texto;
 }
 
 // "ahorro-agregado" -> "Ahorro agregado" (contenido, formato normal)

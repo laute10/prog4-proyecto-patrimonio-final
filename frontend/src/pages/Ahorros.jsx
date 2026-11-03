@@ -17,8 +17,10 @@ import { ICONOS } from "../utils/formato";
 // En el resumen se ven los primeros objetivos; el resto, en "Todos los objetivos".
 const MAX_OBJETIVOS_RESUMEN = 3;
 
+// Negativo: "- $ 75.500", con el signo antes del $ como en utils/formato.
 function formatearMonto(numero) {
-  return "$ " + numero.toLocaleString("es-AR");
+  const texto = "$ " + Math.abs(numero).toLocaleString("es-AR");
+  return numero < 0 ? "- " + texto : texto;
 }
 
 // "ahorro-agregado" -> "Ahorro agregado" (contenido, formato normal)

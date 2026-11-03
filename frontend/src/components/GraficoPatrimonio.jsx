@@ -20,7 +20,9 @@ const CIERRE = { dia: "de cada día", semana: "de cada semana", mes: "de cada me
 
 // 2000000 -> "$2 M", 500000 -> "$500 mil" (para el eje, donde hay poco lugar)
 function montoCorto(numero) {
-  return "$" + numero.toLocaleString("es-AR", { notation: "compact", maximumFractionDigits: 1 });
+  // Negativo: "- $500 mil", con el signo antes del $ como en formatearMonto.
+  const texto = "$" + Math.abs(numero).toLocaleString("es-AR", { notation: "compact", maximumFractionDigits: 1 });
+  return numero < 0 ? "- " + texto : texto;
 }
 
 // Un máximo "redondo" para el eje: 1.750.000 -> 2.000.000

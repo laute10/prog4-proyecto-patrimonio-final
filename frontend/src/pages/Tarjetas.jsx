@@ -26,8 +26,10 @@ import { deudaPeriodo, etiquetaPeriodo, etiquetaCorta } from "../hooks/usePatrim
 // ==========================================================================
 
 
+// Negativo: "- $ 75.500", con el signo antes del $ como en utils/formato.
 function formatearMonto(numero) {
-  return "$ " + numero.toLocaleString("es-AR");
+  const texto = "$ " + Math.abs(numero).toLocaleString("es-AR");
+  return numero < 0 ? "- " + texto : texto;
 }
 
 function claseBadge(estado) {
