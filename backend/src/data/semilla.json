@@ -41,7 +41,7 @@
               "id": 1,
               "categoria": "Facultad",
               "descripcion": "Cuotas",
-              "monto": 280000
+              "monto": 150000
             }
           ]
         },
@@ -209,7 +209,7 @@
       "tarjetaId": 1,
       "periodoId": 101,
       "descripcion": "",
-      "monto": 280000,
+      "monto": 150000,
       "signo": "-",
       "diaDelMes": 1
     },
