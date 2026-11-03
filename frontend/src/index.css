@@ -368,9 +368,6 @@ button {
   font-weight: 600;
 }
 
-.movimiento__monto--positivo { color: var(--color-ingreso-texto); }
-.movimiento__monto--negativo { color: var(--color-gasto-texto); }
-
 /* ==========================================================================
    RESPONSIVE (mobile-first ajustado para este bloque)
    ========================================================================== */

@@ -17,13 +17,10 @@ function MovimientoItem({ movimiento }) {
           {movimiento.descripcion || formatearTipo(movimiento.tipo)}
         </span>
       </div>
-      <span
-        className={
-          "movimiento__monto " +
-          (movimiento.signo === "+" ? "movimiento__monto--positivo" : "") +
-          (movimiento.signo === "-" ? "movimiento__monto--negativo" : "")
-        }
-      >
+      {/* El color sale del tipo, con la misma clase que usa la pantalla
+          Movimientos: así un consumo de tarjeta (sin signo) se ve igual en
+          las dos pantallas. */}
+      <span className={`movimiento__monto item-movimiento__monto--${tipoPunto}`}>
         {movimiento.signo === "+" ? "+ " : movimiento.signo === "-" ? "- " : ""}
         {formatearMonto(movimiento.monto)}
       </span>
