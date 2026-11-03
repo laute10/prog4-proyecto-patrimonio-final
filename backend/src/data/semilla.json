@@ -34,8 +34,7 @@
       "periodos": [
         {
           "id": 101,
-          "mes": 7,
-          "anio": 2026,
+          "mesesAtras": 1,
           "estado": "PAGADA",
           "consumos": [
             {
@@ -48,8 +47,7 @@
         },
         {
           "id": 102,
-          "mes": 8,
-          "anio": 2026,
+          "mesesAtras": 0,
           "estado": "ABIERTA",
           "consumos": [
             {
@@ -112,7 +110,7 @@
       "signo": null,
       "consumoId": 2,
       "tarjetaId": 1,
-      "diasAtras": 1
+      "diasAtras": 0
     },
     {
       "id": 4,
@@ -208,11 +206,12 @@
     {
       "id": 13,
       "tipo": "tarjeta-pago",
-      "categoria": "Pago Visa - Agosto 2026",
+      "tarjetaId": 1,
+      "periodoId": 101,
       "descripcion": "",
       "monto": 280000,
       "signo": "-",
-      "diasAtras": 45
+      "diaDelMes": 1
     },
     {
       "id": 14,

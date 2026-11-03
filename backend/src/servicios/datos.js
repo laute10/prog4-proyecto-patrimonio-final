@@ -1,10 +1,12 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { etiquetaPeriodo } from "./tarjetas.js";
 
 // ==========================================================================
 // datos.js - lee y guarda todo el estado en un archivo JSON.
 //
-// - semilla.json: datos de ejemplo, versionados en git. Guarda "diasAtras"
-//   en vez de fechas para que el ejemplo nunca quede viejo.
+// - semilla.json: datos de ejemplo, versionados en git. Guarda "diasAtras",
+//   "diaDelMes" y "mesesAtras" en vez de fechas para que el ejemplo nunca
+//   quede viejo.
 // - patrimonio.json: el archivo que se lee y se escribe de verdad. No se
 //   versiona: si no existe, se crea a partir de la semilla al arrancar.
 //
@@ -20,16 +22,42 @@ const ARCHIVO_SEMILLA = new URL("../data/semilla.json", import.meta.url);
 
 const UN_DIA = 24 * 60 * 60 * 1000;
 
-// Cambia "diasAtras" por una fecha ISO real (contando desde hoy).
+// Pasa la semilla a datos reales, contando desde hoy, para que el ejemplo
+// sea siempre coherente con la fecha en que se arranca el servidor:
+// - períodos de tarjeta: "mesesAtras" -> { mes, anio } (0 = este mes, el
+//   período abierto; 1 = el mes pasado, el ya pagado).
+// - movimientos: "diasAtras" -> fecha. El pago de la tarjeta usa en cambio
+//   "diaDelMes" (se paga en este mes, después de cerrar el período anterior)
+//   y su categoría se arma como la de un pago real: "Pago Visa - Octubre 2026".
+// Al final los movimientos se ordenan del más nuevo al más viejo, que es el
+// orden en que la app los guarda (cada movimiento nuevo va adelante).
 function convertirSemilla(semilla) {
-  const ahora = Date.now();
-  return {
-    ...semilla,
-    movimientos: semilla.movimientos.map(({ diasAtras, ...mov }) => ({
-      ...mov,
-      fecha: new Date(ahora - diasAtras * UN_DIA).toISOString(),
-    })),
-  };
+  const hoy = new Date();
+
+  const tarjetas = semilla.tarjetas.map((tarjeta) => ({
+    ...tarjeta,
+    periodos: tarjeta.periodos.map(({ mesesAtras, ...periodo }) => {
+      const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - mesesAtras, 1);
+      return { ...periodo, mes: fecha.getMonth(), anio: fecha.getFullYear() };
+    }),
+  }));
+
+  const movimientos = semilla.movimientos.map(({ diasAtras, diaDelMes, ...mov }) => {
+    if (mov.tipo === "tarjeta-pago") {
+      const tarjeta = tarjetas.find((t) => t.id === mov.tarjetaId);
+      const periodo = tarjeta.periodos.find((p) => p.id === mov.periodoId);
+      return {
+        ...mov,
+        categoria: `Pago ${tarjeta.nombre} - ${etiquetaPeriodo(periodo)}`,
+        fecha: new Date(hoy.getFullYear(), hoy.getMonth(), diaDelMes).toISOString(),
+      };
+    }
+    return { ...mov, fecha: new Date(hoy.getTime() - diasAtras * UN_DIA).toISOString() };
+  });
+  // sort mantiene el orden original entre movimientos con la misma fecha.
+  movimientos.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  return { ...semilla, tarjetas, movimientos };
 }
 
 // Se llama una vez al arrancar el servidor.
