@@ -7,7 +7,7 @@ import Modal from "../components/Modal";
 import SelectorIcono from "../components/SelectorIcono";
 import TarjetaObjetivo from "../components/TarjetaObjetivo";
 import PanelObjetivo from "../components/PanelObjetivo";
-import { ICONOS } from "../utils/formato";
+import { ICONOS, formatearMonto } from "../utils/formato";
 
 // ==========================================================================
 // Ahorros - resumen + grilla de objetivos + movimientos recientes.
@@ -16,12 +16,6 @@ import { ICONOS } from "../utils/formato";
 
 // En el resumen se ven los primeros objetivos; el resto, en "Todos los objetivos".
 const MAX_OBJETIVOS_RESUMEN = 3;
-
-// Negativo: "- $ 75.500", con el signo antes del $ como en utils/formato.
-function formatearMonto(numero) {
-  const texto = "$ " + Math.abs(numero).toLocaleString("es-AR");
-  return numero < 0 ? "- " + texto : texto;
-}
 
 // "ahorro-agregado" -> "Ahorro agregado" (contenido, formato normal)
 function formatearTipo(tipo) {

@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import SelectorCategoria from "../components/SelectorCategoria";
 import CampoFormulario from "../components/CampoFormulario";
 import { deudaPeriodo, etiquetaPeriodo, etiquetaCorta } from "../hooks/usePatrimonio";
+import { formatearMonto } from "../utils/formato";
 
 // ==========================================================================
 // Tarjetas - lista de tarjetas (solo período ABIERTO) e historial de
@@ -25,12 +26,6 @@ import { deudaPeriodo, etiquetaPeriodo, etiquetaCorta } from "../hooks/usePatrim
 // acciones son async y, si la API responde un error, lanzan su mensaje.
 // ==========================================================================
 
-
-// Negativo: "- $ 75.500", con el signo antes del $ como en utils/formato.
-function formatearMonto(numero) {
-  const texto = "$ " + Math.abs(numero).toLocaleString("es-AR");
-  return numero < 0 ? "- " + texto : texto;
-}
 
 function claseBadge(estado) {
   return "badge badge--" + estado.toLowerCase();
