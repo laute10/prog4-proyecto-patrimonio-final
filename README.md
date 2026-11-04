@@ -1,252 +1,250 @@
 # Patrimonio
 
-Aplicación web para controlar el patrimonio personal: dinero disponible, ahorros, tarjetas de crédito, ingresos, gastos y estadísticas.
-Proyecto final de **Programación 4** · Universidad Champagnat · Prof. Lic. Ignacio G. Fontaine Digier.
+Patrimonio es una aplicación web para controlar las finanzas personales: el dinero disponible, los ahorros, las tarjetas de crédito, los ingresos y gastos del día a día, y estadísticas de cómo evoluciona todo.
 
-**Integrantes:** Lautaro Espejo
-
-- 🎨 Prototipo en Figma: https://www.figma.com/design/mAGqEaUlhmfvLpwQLg1DWA/Design-System-Patrimonio
-- 🌐 Versión anterior publicada (Ejercitación 4.1, solo interfaz): https://patrimonio-react-laute.netlify.app
-- 📄 Sitio anterior (HTML, CSS y JS, Ejercitación 3.1): https://github.com/laute10/patrimonio-web
-
-## ¿Qué problema resuelve?
-
-Muchas personas no saben cuánto dinero tienen realmente disponible, porque una parte está ahorrada y otra ya está comprometida con la tarjeta. Patrimonio muestra en una sola pantalla el patrimonio total y cómo se reparte:
+**¿Qué problema resuelve?** Mucha gente no sabe cuánto dinero tiene realmente, porque una parte está ahorrada para algo y otra ya está comprometida con la tarjeta. Patrimonio muestra en una sola pantalla el total y cómo se reparte:
 
 **Patrimonio = Disponible + Ahorros + Reserva de tarjeta**
 
-- Registrar un ingreso o un gasto cambia el disponible.
-- Agregar o retirar ahorro mueve dinero entre el disponible y un objetivo (el patrimonio no cambia). Utilizar un ahorro es un gasto real.
-- Una compra con tarjeta pasa dinero del disponible a la reserva. Pagar el período sale de la reserva: el disponible no cambia y el patrimonio baja una sola vez.
+- **Disponible:** la plata que podés usar hoy. Sube con un ingreso y baja con un gasto.
+- **Ahorros:** el dinero separado en objetivos (por ejemplo "Auto" o "Vacaciones"). Pasar plata del disponible a un objetivo, o devolverla, no cambia el patrimonio: solo la cambia de lugar. Si la *utilizás*, cuenta como un gasto.
+- **Reserva de tarjeta:** cuando comprás con tarjeta, esa plata sale del disponible y queda reservada para pagar el resumen. Al pagar el período sale de la reserva, y el patrimonio baja una sola vez.
 
-## Pantallas
+## Integrantes
 
-Todos los datos financieros (movimientos, ahorros, tarjetas y categorías propias) se guardan en el servidor y siguen ahí al recargar la página o reiniciar el backend. Lo único simulado es la sesión.
+Proyecto individual.
 
-| Pantalla | Qué permite |
+| Integrante | Qué desarrolló |
 |---|---|
-| Iniciar sesión, Crear cuenta y Recuperar contraseña | Formularios con validación por campo (la sesión es simulada) |
-| Inicio | Ver el patrimonio, registrar gastos e ingresos (con categorías propias) y ver los últimos movimientos |
-| Ahorros | Crear objetivos, ver todos y, en el detalle de cada uno, agregar, retirar o utilizar dinero, editarlo y eliminarlo |
-| Tarjetas | Crear tarjetas, cargar, editar y eliminar consumos, cerrar y pagar períodos, filtrar el historial |
-| Movimientos | Buscar y filtrar todos los movimientos (el filtro lo hace el servidor), ver el detalle y editar o eliminar ingresos y gastos |
-| Estadísticas | Gráficos por período y progreso del patrimonio, calculados con los movimientos guardados |
-| Configuración | Editar nombre y correo (forman parte de la sesión simulada), elegir tema claro u oscuro (se recuerda en el navegador) y cerrar sesión con confirmación |
+| Lautaro Espejo | Todo el proyecto: diseño UX/UI en Figma, frontend en React y backend en Node.js con Express |
 
-## Cómo está armado
+Proyecto final de **Programación 4**, Campus Sede Este, **Universidad Champagnat**. Profesor: Lic. Ignacio G. Fontaine Digier.
 
-El repositorio tiene dos partes, cada una con su propio `package.json`:
+## Tecnologías
 
-- **`backend/`**: API con **Node.js y Express** (módulos ES). Usa `express.Router()`, controladores, middlewares y guarda los datos en un archivo JSON con `fs/promises`. Solo depende de `express` y `cors`; la validación está escrita a mano.
-- **`frontend/`**: aplicación con **React + Vite**. Consume la API con `fetch` y toma la dirección de la variable `VITE_API_URL`.
+- **Frontend:** React 19 + Vite.
+- **Backend:** Node.js + Express 5 (con `cors`), con módulos ES.
+- **Persistencia:** archivos JSON en el servidor (sin base de datos).
 
-## Cómo instalarlo y ejecutarlo
+## Requisitos
 
-Requisitos: **Node.js 20 o superior** (probado con Node 24) y **Git**.
+- **Node.js 20.19 o superior** (o 22.12 o superior). Es lo que piden Vite 8 y su plugin de React en el frontend; el backend (Express 5) funciona desde Node 18. El proyecto se probó con Node 24.
+- **npm**, que viene incluido con Node.js.
+- **Git**, para clonar el repositorio.
 
-```bash
-git clone -b full-stack https://github.com/laute10/patrimonio-react.git
-cd patrimonio-react
+Para saber qué versión tenés, abrí una terminal y escribí `node -v`.
+
+## Instalación y ejecución
+
+Los comandos son para Windows (PowerShell o el símbolo del sistema), pero son los mismos en otros sistemas. Vas a necesitar **dos terminales abiertas al mismo tiempo**: una para el backend y otra para el frontend.
+
+### 1. Clonar el repositorio
+
+```
+git clone https://github.com/laute10/prog4-proyecto-patrimonio-final.git
+cd prog4-proyecto-patrimonio-final
 ```
 
-Se necesitan **dos terminales**, una para cada parte.
+### 2. Iniciar el backend (terminal 1)
 
-**Terminal 1: backend**
-
-```bash
+```
 cd backend
 npm install
-npm run dev
+npm start
 ```
 
-Queda escuchando en `http://localhost:3000`. La primera vez crea el archivo de datos y muestra `Se creó data/patrimonio.json a partir de la semilla.`
-Para comprobar que anda, abrí `http://localhost:3000/api/salud`: tiene que responder `{"estado":"ok"}`.
+- Queda escuchando en **http://localhost:3000** y muestra `Servidor escuchando en http://localhost:3000`.
+- La primera vez muestra también `Se creó data/patrimonio.json a partir de la semilla.`: el archivo de datos `backend/src/data/patrimonio.json` se genera solo, copiando los datos de ejemplo de `backend/src/data/semilla.json`.
+- Para comprobar que anda, abrí http://localhost:3000/api/salud en el navegador: tiene que responder `{"estado":"ok"}`.
+- `npm run dev` hace lo mismo que `npm start`, pero reinicia el servidor cada vez que guardás un archivo (útil mientras se programa).
+- Dejá esta terminal abierta: si la cerrás, se apaga el servidor.
 
-- `npm run dev` reinicia el servidor solo al guardar un archivo (`node --watch`). `npm start` lo corre sin reinicio automático.
-- El puerto sale de la variable `PORT` (3000 si no está definida). Para usar otro:
-  - PowerShell: `$env:PORT=4000; npm run dev`
-  - Bash: `PORT=4000 npm run dev`
+### 3. Iniciar el frontend (terminal 2)
 
-**Terminal 2: frontend**
+Abrí otra terminal en la carpeta del proyecto y ejecutá:
 
-```bash
+```
 cd frontend
 npm install
 npm run dev
 ```
 
-Abrí la dirección que muestra (normalmente `http://localhost:5173`). Para entrar, cualquier correo con formato válido y una contraseña no vacía.
+Abrí en el navegador la dirección que aparece: **http://localhost:5173**.
 
-**La dirección de la API (`VITE_API_URL`)**
+**Importante:** el backend tiene que estar corriendo antes de abrir el frontend. Si no, la aplicación muestra "No se pudieron cargar los datos" con un botón **Reintentar**: iniciá el backend y tocá ese botón.
 
-El frontend no tiene la dirección de la API escrita en el código: la toma del archivo `frontend/.env`, que ya viene en el repositorio:
+### La dirección de la API
+
+El frontend no tiene la dirección del backend escrita en el código: la lee de la variable `VITE_API_URL` del archivo `frontend/.env`, que ya viene en el repositorio con este valor:
 
 ```
 VITE_API_URL=http://localhost:3000/api
 ```
 
-Si el backend corre en otro puerto o en otro servidor, cambiá ese valor y reiniciá `npm run dev` del frontend. En `frontend/.env.example` está el mismo ejemplo.
+No hace falta tocarlo. Si alguna vez el backend corre en otro puerto, cambiá ese valor y volvé a ejecutar `npm run dev` en el frontend.
 
-Si el backend está apagado, la aplicación muestra "No pudimos conectarnos con el servidor" y un botón **Reintentar**.
+## Usuario y datos de ejemplo
 
-**Otros comandos del frontend:** `npm run build` (versión de producción en `dist/`), `npm run lint` (revisa el código) y `npm run preview` (prueba la versión de producción).
+**El inicio de sesión es simulado:** no hay base de datos de usuarios ni contraseñas guardadas. Para entrar:
 
-## Datos de ejemplo y cómo reiniciarlos
+- En **Iniciar sesión**, escribí cualquier correo con formato válido (por ejemplo `lautaro@correo.com`) y cualquier contraseña que no esté vacía.
+- También podés usar **Crear cuenta** (nombre, correo, una contraseña de al menos 8 caracteres y su repetición): al crearla entrás directamente.
+- **Recuperar contraseña** valida el correo y muestra un mensaje de confirmación, pero no envía ningún correo.
 
-- `backend/src/data/semilla.json`: datos de ejemplo, incluidos en el repositorio. Las fechas se guardan como "días atrás" para que el ejemplo nunca quede viejo.
-- `backend/src/data/patrimonio.json`: los datos reales. No está en el repositorio: se crea a partir de la semilla la primera vez que arranca el backend. Todos los cambios hechos desde la aplicación se guardan acá y siguen después de reiniciar el servidor.
+Todos los usuarios ven y modifican **el mismo conjunto de datos**. La aplicación arranca con datos de ejemplo: ingresos, gastos, tres objetivos de ahorro y una tarjeta Visa con un período abierto y otro ya pagado. Las fechas de la semilla se calculan a partir del día de hoy, así que el ejemplo nunca queda viejo.
 
-Para **volver a los datos de ejemplo**:
+Todo lo que cambies desde la aplicación se guarda en `backend/src/data/patrimonio.json` y sigue ahí aunque reinicies el servidor.
 
-1. Detené el backend (Ctrl + C en la terminal 1).
-2. Borrá el archivo de datos:
-   - PowerShell: `Remove-Item backend/src/data/patrimonio.json`
-   - Bash: `rm backend/src/data/patrimonio.json`
-3. Volvé a iniciar el backend con `npm run dev`: se crea de nuevo desde la semilla.
+**Para volver a los datos de ejemplo:**
 
-## API
+1. Detené el backend con `Ctrl + C` en la terminal 1.
+2. Borrá el archivo de datos (desde la carpeta del proyecto):
+   - PowerShell: `Remove-Item backend\src\data\patrimonio.json`
+   - Símbolo del sistema: `del backend\src\data\patrimonio.json`
+3. Volvé a iniciar el backend con `npm start`: el archivo se crea de nuevo desde la semilla.
 
-Base: `http://localhost:3000/api`. Los cuerpos se envían en JSON (`Content-Type: application/json`).
-Los errores siempre responden JSON con la forma `{ "error": "mensaje" }`. El `id` y la fecha de cada registro los pone el servidor.
+## Estructura de carpetas
 
-**Códigos que usa la API:**
-- **200**: salió bien.
-- **201**: se creó algo.
-- **204**: se eliminó, sin cuerpo.
-- **400**: datos inválidos, o una regla que no se cumple (por ejemplo, dejar el disponible en negativo).
-- **404**: no existe.
-- **500**: error del servidor, sin detalles internos.
+```
+prog4-proyecto-patrimonio-final/
+├── backend/
+│   ├── package.json          scripts start y dev; dependencias: express y cors
+│   └── src/
+│       ├── index.js          arma la app de Express: middlewares, rutas, 404 y errores
+│       ├── routes/           un express.Router() por recurso
+│       ├── controllers/      qué hace cada endpoint y con qué código responde
+│       ├── middlewares/      registro de pedidos, ruta inexistente (404) y manejo de errores
+│       ├── validaciones/     validación a mano de los datos de cada pedido
+│       ├── reglas/           cómo afecta cada movimiento al disponible, ahorros y reserva
+│       ├── servicios/        lectura y escritura del JSON, totales y tarjetas
+│       └── data/             semilla.json (ejemplo) y patrimonio.json (se crea al iniciar)
+├── frontend/
+│   ├── .env                  VITE_API_URL, la dirección de la API
+│   ├── docs/                 planificación, árbol de componentes y capturas de pruebas de la API
+│   ├── public/               archivos estáticos (íconos)
+│   └── src/
+│       ├── App.jsx           sesión, navegación entre pantallas y tema claro/oscuro
+│       ├── pages/            una pantalla por archivo (Inicio, Movimientos, Ahorros, Tarjetas…)
+│       ├── components/       paneles, modales, formularios, gráficos e íconos reutilizables
+│       ├── hooks/            usePatrimonio: el estado financiero; cada acción llama a la API
+│       ├── utils/            pedidos a la API, formato de montos y fechas, validaciones
+│       └── index.css         todos los estilos, con los colores en variables
+├── capturas/                 capturas de todas las pantallas (escritorio y móvil)
+└── docs/                     presentación de la etapa 1
+```
 
-### General
+## Endpoints de la API
 
-| Método | Ruta | Qué hace | Códigos |
+Base: `http://localhost:3000/api`. Los datos se envían y se reciben en JSON. Los errores siempre responden JSON con la forma `{ "error": "mensaje" }`. Los códigos posibles son 200, 201, 204, 400 (datos inválidos o una regla que no se cumple), 404 (no existe) y 500 (error del servidor). Una ruta que no existe responde 404 en JSON.
+
+Son **24 endpoints**:
+
+| # | Método | Ruta | Descripción |
 |---|---|---|---|
-| GET | `/salud` | Comprueba que el servidor está andando | 200 |
-| GET | `/patrimonio` | Todo el estado más los totales (disponible, ahorros, reserva y patrimonio) | 200 |
-| (cualquiera) | ruta inexistente | Responde que la ruta no existe | 404 |
+| 1 | GET | `/api/salud` | Comprueba que el servidor está funcionando |
+| 2 | GET | `/api/patrimonio` | Todos los datos más los totales (disponible, ahorros, reserva y patrimonio); es la carga inicial del frontend |
+| 3 | GET | `/api/movimientos` | Lista de movimientos, del más nuevo al más viejo. Filtros opcionales por query string: `tipo`, `objetivoId`, `desde`, `hasta` (fechas `AAAA-MM-DD`) y `q` (texto) |
+| 4 | GET | `/api/movimientos/:id` | Un movimiento |
+| 5 | POST | `/api/movimientos` | Registra un ingreso o un gasto |
+| 6 | PUT | `/api/movimientos/:id` | Edita un ingreso o un gasto (no puede dejar el disponible en negativo) |
+| 7 | DELETE | `/api/movimientos/:id` | Elimina un ingreso o un gasto y deshace su efecto |
+| 8 | GET | `/api/objetivos` | Lista de objetivos de ahorro |
+| 9 | GET | `/api/objetivos/:id` | Un objetivo |
+| 10 | POST | `/api/objetivos` | Crea un objetivo (empieza en $0) |
+| 11 | PUT | `/api/objetivos/:id` | Edita nombre, monto objetivo e ícono |
+| 12 | DELETE | `/api/objetivos/:id` | Elimina un objetivo (no se puede si todavía tiene dinero) |
+| 13 | POST | `/api/objetivos/:id/movimientos` | Agrega, retira o utiliza dinero del objetivo |
+| 14 | GET | `/api/tarjetas` | Lista de tarjetas con sus períodos y consumos |
+| 15 | GET | `/api/tarjetas/:id` | Una tarjeta |
+| 16 | POST | `/api/tarjetas` | Crea una tarjeta con su período abierto del mes actual |
+| 17 | POST | `/api/tarjetas/:id/consumos` | Agrega un consumo al período abierto |
+| 18 | PUT | `/api/tarjetas/:id/consumos/:consumoId` | Edita un consumo del período abierto |
+| 19 | DELETE | `/api/tarjetas/:id/consumos/:consumoId` | Elimina un consumo del período abierto |
+| 20 | POST | `/api/tarjetas/:id/cierre` | Cierra el período abierto y abre el del mes siguiente |
+| 21 | POST | `/api/tarjetas/:id/periodos/:periodoId/pago` | Paga un período cerrado |
+| 22 | GET | `/api/categorias` | Categorías creadas por el usuario, de gasto y de ingreso |
+| 23 | POST | `/api/categorias` | Crea una categoría (si ya existe, no la duplica) |
+| 24 | DELETE | `/api/categorias/:tipo/:nombre` | Elimina una categoría (no se puede si algún movimiento la usa) |
 
-### Movimientos (recurso principal)
+## Capturas de pantalla
 
-Desde acá se crean, editan y eliminan **ingresos y gastos**. Los movimientos de ahorro y de tarjeta se ven, pero se gestionan desde su propio recurso.
+Tomadas con los datos de ejemplo, en modo claro, a 1440 × 900 (escritorio) y 390 × 844 (móvil).
 
-| Método | Ruta | Cuerpo | Qué hace | Códigos |
-|---|---|---|---|---|
-| GET | `/movimientos` | | Lista, del más reciente al más viejo. Filtros por query string (ver abajo) | 200, 400 |
-| GET | `/movimientos/:id` | | Un movimiento | 200, 400, 404 |
-| POST | `/movimientos` | `{ tipo, categoria, monto, descripcion? }` | Registra un ingreso o un gasto (`tipo`: `"ingreso"` o `"gasto"`) | 201, 400 |
-| PUT | `/movimientos/:id` | `{ categoria, monto, descripcion? }` | Edita un ingreso o un gasto | 200, 400, 404 |
-| DELETE | `/movimientos/:id` | | Elimina un ingreso o un gasto y deshace su efecto | 204, 400, 404 |
+### Iniciar sesión
 
-**Filtros de `GET /movimientos`** (todos opcionales y combinables):
-- `tipo`: `ingreso`, `gasto`, `ahorro`, `tarjeta`, o un tipo exacto como `ahorro-usado`.
-- `objetivoId`: id del objetivo de ahorro.
-- `desde` y `hasta`: fechas `AAAA-MM-DD`, incluidas.
-- `q`: búsqueda de texto en la categoría y la descripción, sin distinguir mayúsculas.
+| Escritorio | Móvil |
+|---|---|
+| ![Iniciar sesión en escritorio](capturas/login-escritorio.png) | ![Iniciar sesión en móvil](capturas/login-movil.png) |
 
-Ejemplo: `GET /movimientos?tipo=gasto&q=alquiler`
+### Crear cuenta
 
-### Objetivos de ahorro
+| Escritorio | Móvil |
+|---|---|
+| ![Crear cuenta en escritorio](capturas/crear-cuenta-escritorio.png) | ![Crear cuenta en móvil](capturas/crear-cuenta-movil.png) |
 
-| Método | Ruta | Cuerpo | Qué hace | Códigos |
-|---|---|---|---|---|
-| GET | `/objetivos` | | Lista de objetivos | 200 |
-| GET | `/objetivos/:id` | | Un objetivo | 200, 400, 404 |
-| POST | `/objetivos` | `{ nombre, montoObjetivo, icono }` | Crea un objetivo (empieza en $0) | 201, 400 |
-| PUT | `/objetivos/:id` | `{ nombre, montoObjetivo, icono }` | Edita el objetivo y renombra sus movimientos | 200, 400, 404 |
-| DELETE | `/objetivos/:id` | | Elimina un objetivo (no se puede si todavía tiene dinero) | 204, 400, 404 |
-| POST | `/objetivos/:id/movimientos` | `{ accion, monto, descripcion? }` | `accion`: `"agregar"`, `"retirar"` o `"usar"`. Responde el movimiento y el objetivo actualizado | 201, 400, 404 |
+### Recuperar contraseña
+
+| Escritorio | Móvil |
+|---|---|
+| ![Recuperar contraseña en escritorio](capturas/recuperar-escritorio.png) | ![Recuperar contraseña en móvil](capturas/recuperar-movil.png) |
+
+### Inicio
+
+| Escritorio | Móvil |
+|---|---|
+| ![Inicio en escritorio](capturas/inicio-escritorio.png) | ![Inicio en móvil](capturas/inicio-movil.png) |
+
+### Movimientos
+
+| Escritorio | Móvil |
+|---|---|
+| ![Movimientos en escritorio](capturas/movimientos-escritorio.png) | ![Movimientos en móvil](capturas/movimientos-movil.png) |
+
+### Ahorros
+
+| Escritorio | Móvil |
+|---|---|
+| ![Ahorros en escritorio](capturas/ahorros-escritorio.png) | ![Ahorros en móvil](capturas/ahorros-movil.png) |
 
 ### Tarjetas
 
-| Método | Ruta | Cuerpo | Qué hace | Códigos |
-|---|---|---|---|---|
-| GET | `/tarjetas` | | Lista de tarjetas con sus períodos y consumos | 200 |
-| GET | `/tarjetas/:id` | | Una tarjeta | 200, 400, 404 |
-| POST | `/tarjetas` | `{ nombre }` | Crea la tarjeta con su período abierto del mes actual | 201, 400 |
-| POST | `/tarjetas/:id/consumos` | `{ categoria, monto, descripcion? }` | Agrega un consumo al período abierto (no puede superar el disponible) | 201, 400, 404 |
-| PUT | `/tarjetas/:id/consumos/:consumoId` | `{ categoria, monto, descripcion? }` | Edita un consumo del período abierto | 200, 400, 404 |
-| DELETE | `/tarjetas/:id/consumos/:consumoId` | | Elimina un consumo del período abierto; responde la tarjeta y el disponible nuevos | 200, 400, 404 |
-| POST | `/tarjetas/:id/cierre` | | Cierra el período abierto y abre el del mes siguiente | 201, 400, 404 |
-| POST | `/tarjetas/:id/periodos/:periodoId/pago` | | Paga un período cerrado | 201, 400, 404 |
-
-### Categorías propias
-
-Las categorías predeterminadas (Comida, Sueldo…) están en el frontend. Acá se guardan las que crea el usuario.
-
-| Método | Ruta | Cuerpo | Qué hace | Códigos |
-|---|---|---|---|---|
-| GET | `/categorias` | | `{ gasto: [...], ingreso: [...] }` | 200 |
-| POST | `/categorias` | `{ tipo, nombre }` | Crea una categoría (201). Si ya existe, no la duplica y responde 200 | 201, 200, 400 |
-| DELETE | `/categorias/:tipo/:nombre` | | Elimina una categoría (no se puede si un movimiento o un consumo la usa) | 204, 400, 404 |
-
-## Estructura
-
-```
-backend/
-├── package.json             scripts dev y start
-└── src/
-    ├── index.js             arma la app: middlewares, rutas, 404 y errores; puerto desde PORT
-    ├── routes/              un express.Router() por recurso
-    ├── controllers/         qué hace cada endpoint y con qué código responde
-    ├── middlewares/         registro (propio), noEncontrado (404) y manejoErrores (500)
-    ├── validaciones/        validación de los datos de cada pedido, escrita a mano
-    ├── reglas/              efectoMovimiento: cuánto cambia cada parte del patrimonio
-    ├── servicios/           lectura y escritura del JSON, totales y ayudas
-    └── data/                semilla.json (y patrimonio.json, que se crea al arrancar)
-
-frontend/
-├── .env                     VITE_API_URL
-├── src/
-│   ├── App.jsx              sesión y navegación
-│   ├── hooks/usePatrimonio.js   estado financiero: cada acción llama a la API
-│   ├── utils/api.js         pedir(): arma la dirección con VITE_API_URL y maneja los errores
-│   ├── pages/               Inicio, Movimientos, Ahorros, Tarjetas, Estadisticas, Configuracion…
-│   └── components/          paneles, modales, formularios y gráficos
-└── docs/                    planificación, árbol de componentes y capturas de la API
-```
-
-## Planificación
-
-El árbol de componentes, los componentes reutilizables y qué es estado y qué es props están en `frontend/docs/`: [`arbol-de-componentes.svg`](frontend/docs/arbol-de-componentes.svg) y [`planificacion.md`](frontend/docs/planificacion.md). El árbol se regenera desde el código con `npm run arbol` (en `frontend/`).
-
-## Pruebas de la API
-
-Capturas de pedidos reales hechos con Thunder Client, en `frontend/docs/capturas-api/`:
-
-| Captura | Qué muestra |
+| Escritorio | Móvil |
 |---|---|
-| `01-get-movimientos-200.png` | Lista de movimientos (200) |
-| `02-get-movimiento-404.png` | Pedir un movimiento que no existe (404) |
-| `03-post-movimiento-201.png` | Registrar un gasto (201) |
-| `04-post-monto-texto-400.png` | Monto enviado como texto (400) |
-| `05-post-sin-saldo-400.png` | Gasto mayor al disponible (400) |
-| `06-put-movimiento-200.png` | Editar un movimiento (200) |
-| `07-put-disponible-negativo-400.png` | Edición que dejaría el disponible en negativo (400) |
-| `08-delete-movimiento-204.png` | Eliminar un movimiento (204) |
-| `09-delete-movimiento-404.png` | Eliminar un movimiento que ya no existe (404) |
-| `10-get-ruta-inexistente-404.png` | Ruta inexistente (404 en JSON) |
-| `11-delete-categoria-en-uso-400.png` | Borrar una categoría que está en uso (400) |
-| `12-delete-categoria-204.png` | Borrar una categoría sin uso (204) |
+| ![Tarjetas en escritorio](capturas/tarjetas-escritorio.png) | ![Tarjetas en móvil](capturas/tarjetas-movil.png) |
 
-## Verificación (Ejercitación 4.1)
+### Estadísticas
 
-Medido con Lighthouse sobre la versión de producción (`npm run preview`), en escritorio y en celular (390 px). Iniciar sesión se midió con carga de página completa; las demás pantallas con el modo *snapshot* de Lighthouse, porque la aplicación no recarga la página al navegar.
+| Escritorio | Móvil |
+|---|---|
+| ![Estadísticas en escritorio](capturas/estadisticas-escritorio.png) | ![Estadísticas en móvil](capturas/estadisticas-movil.png) |
 
-| Pantalla | Accesibilidad | Buenas prácticas |
-|---|---|---|
-| Iniciar sesión | 100 | 100 |
-| Crear cuenta | 100 | 100 |
-| Recuperar contraseña | 100 | 100 |
-| Inicio | 100 | 100 |
-| Ahorros | 100 | 100 |
-| Tarjetas | 100 | 100 |
-| Movimientos | 100 | 100 |
-| Estadísticas | 100 | 100 |
-| Configuración | 100 | 100 |
+### Configuración
 
-El 2 de noviembre de 2026, con el backend ya integrado, se revisaron con axe-core (el motor de accesibilidad de Lighthouse) 94 estados de la aplicación: las seis pantallas, la Ayuda, cada panel lateral y cada ventana de confirmación, en tema claro y oscuro, y también a 390 px. No se encontraron violaciones.
+| Escritorio | Móvil |
+|---|---|
+| ![Configuración en escritorio](capturas/configuracion-escritorio.png) | ![Configuración en móvil](capturas/configuracion-movil.png) |
 
-## Limitaciones conocidas
+### Ayuda
 
-- La sesión es simulada: cualquier correo con formato válido y una contraseña no vacía permite ingresar. Hay un solo conjunto de datos, compartido.
-- Las categorías propias se crean desde el formulario, pero la aplicación no tiene una pantalla para borrarlas (se puede con `DELETE /api/categorias/...`).
+| Escritorio | Móvil |
+|---|---|
+| ![Panel de ayuda en escritorio](capturas/ayuda-escritorio.png) | ![Panel de ayuda en móvil](capturas/ayuda-movil.png) |
+
+## Diseño y presentación
+
+- Presentación de la etapa 1 (Diseño centrado en el usuario): [docs/presentacion-etapa1.pdf](docs/presentacion-etapa1.pdf)
+- Figma, diseño de alta fidelidad: https://www.figma.com/design/mAGqEaUlhmfvLpwQLg1DWA
+- Figma, wireframes de baja fidelidad: https://www.figma.com/design/Kyz5ZpK25jl90BGIECfA6N/Patrimonio
+
+## Cumplimiento de los requisitos mínimos
+
+- **Pantalla de inicio:** Inicio muestra el patrimonio total, cómo se reparte (disponible, ahorros y tarjeta), los botones para registrar un ingreso o un gasto y los últimos movimientos.
+- **Navegación consistente:** el mismo encabezado con el menú en todas las pantallas; en el celular se abre con el botón de menú. La pantalla actual queda marcada.
+- **CRUD:** movimientos (crear, ver, editar y eliminar ingresos y gastos), objetivos de ahorro (crear, ver, editar y eliminar) y consumos de tarjeta (agregar, editar y eliminar), todo guardado en el backend.
+- **Filtro:** Movimientos filtra por tipo, objetivo, rango de fechas y texto (el filtro lo hace el servidor); Tarjetas filtra el historial de períodos por tarjeta y por estado.
+- **Formularios validados:** iniciar sesión, crear cuenta, recuperar contraseña y todos los formularios de montos muestran un mensaje junto al campo con error; el backend vuelve a validar cada pedido.
+- **Respuesta a cada acción:** aviso de éxito al registrar un ingreso o gasto en Inicio y al guardar en Configuración; ventanas de confirmación antes de eliminar, cerrar o pagar un período; los datos y totales se actualizan al instante.
+- **Estados de carga y error:** "Cargando…" al abrir la aplicación; "No se pudieron cargar los datos" con un botón Reintentar si el backend no responde; "Guardando…" en los botones mientras se espera a la API; "Buscando…" al filtrar movimientos; el error del servidor aparece en el formulario; mensaje cuando una lista está vacía.
+- **Responsive:** probado en celular (390 px) y escritorio, sin scroll horizontal; ver las capturas.
+- **Accesibilidad:** 100 en Accesibilidad y Buenas prácticas de Lighthouse en las 9 pantallas; revisión con axe-core sin violaciones en tema claro y oscuro; botones de ícono con `aria-label`, ventanas con `role="dialog"` y contraste AA.
+- **Consistencia visual:** los mismos colores (definidos en variables de CSS), tipografía, botones, tarjetas y paneles en todas las pantallas, siguiendo el diseño de Figma; incluye modo oscuro.
