@@ -10,6 +10,24 @@ Patrimonio es una aplicación web para controlar las finanzas personales: el din
 - **Ahorros:** el dinero separado en objetivos (por ejemplo "Auto" o "Vacaciones"). Pasar plata del disponible a un objetivo, o devolverla, no cambia el patrimonio: solo la cambia de lugar. Si la *utilizás*, cuenta como un gasto.
 - **Reserva de tarjeta:** cuando comprás con tarjeta, esa plata sale del disponible y queda reservada para pagar el resumen. Al pagar el período sale de la reserva, y el patrimonio baja una sola vez.
 
+## Enlaces
+
+- 🌐 **Demo en línea:** https://patrimonio-react-laute.netlify.app — es la versión del frontend en React con datos de ejemplo, sin el backend de este repositorio (los cambios no se guardan al recargar).
+- 🎨 **Diseño en Figma:** [alta fidelidad](https://www.figma.com/design/mAGqEaUlhmfvLpwQLg1DWA) y [wireframes](https://www.figma.com/design/Kyz5ZpK25jl90BGIECfA6N/Patrimonio).
+- 📄 **Presentación del diseño:** [docs/presentacion-etapa1.pdf](docs/presentacion-etapa1.pdf)
+
+### Versiones del proyecto
+
+Patrimonio se fue construyendo por etapas durante la materia:
+
+| Versión | Tecnologías | Repositorio |
+|---|---|---|
+| 1. Sitio estático | HTML, CSS y JavaScript | [patrimonio-web](https://github.com/laute10/patrimonio-web) · [ver publicado](https://laute10.github.io/patrimonio-web/) |
+| 2. Aplicación en React | React 19 + Vite | [patrimonio-react](https://github.com/laute10/patrimonio-react) · [ver publicado](https://patrimonio-react-laute.netlify.app) |
+| 3. **Full-stack (este repositorio)** | React + API REST en Node.js y Express | prog4-proyecto-patrimonio-final |
+
+Antes de la versión web existió una versión de escritorio en Java, Swing y MySQL.
+
 ## Integrantes
 
 Proyecto individual.
